@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	cli, err := client.NewEnvClient()
+	cli, err := client.NewClientWithOpts(client.FromEnv)
 	if err != nil {
 		log.Printf("ERROR: Docker client initialization failed.")
 		panic(err)

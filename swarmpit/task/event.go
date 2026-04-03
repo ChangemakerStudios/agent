@@ -4,13 +4,13 @@ import (
 	"io"
 	"log"
 	"context"
+	"github.com/docker/docker/api/types/events"
 	"github.com/docker/docker/client"
-	"github.com/docker/docker/api/types"
 	"github.com/swarmpit/agent/swarmpit"
 )
 
 func HandleEvents(cli *client.Client) {
-	messages, errs := cli.Events(context.Background(), types.EventsOptions{})
+	messages, errs := cli.Events(context.Background(), events.ListOptions{})
 
 loop:
 	for {

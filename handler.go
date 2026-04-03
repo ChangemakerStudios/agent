@@ -5,11 +5,11 @@ import (
 	"net/http"
 	"encoding/json"
 	"github.com/swarmpit/agent/setup"
+	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
-	"github.com/docker/docker/api/types"
 	"github.com/gorilla/mux"
+	"io"
 	"log"
-	"io/ioutil"
 )
 
 func Info(w http.ResponseWriter, r *http.Request) {
@@ -18,7 +18,7 @@ func Info(w http.ResponseWriter, r *http.Request) {
 
 func Logs(cli *client.Client) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var options = types.ContainerLogsOptions{
+		var options = container.LogsOptions{
 			ShowStdout: true,
 			ShowStderr: true,
 			Timestamps: true,
@@ -43,7 +43,7 @@ func Logs(cli *client.Client) http.HandlerFunc {
 		}
 
 		defer resp.Close()
-		content, err := ioutil.ReadAll(resp)
+		content, err := io.ReadAll(resp)
 		if err != nil {
 			log.Printf("ERROR: Cannot read container logs: %s\n", err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
