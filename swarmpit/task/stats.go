@@ -12,6 +12,7 @@ import (
 	"github.com/swarmpit/agent/setup"
 	"github.com/swarmpit/agent/swarmpit"
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
 	"github.com/shirou/gopsutil/cpu"
 	"github.com/shirou/gopsutil/disk"
@@ -108,7 +109,7 @@ func MemoryUsage() (ms MemoryStatus) {
 }
 
 func ContainersUsage(cli *client.Client) (stats []ContainerStatus) {
-	resp, err := cli.ContainerList(context.Background(), types.ContainerListOptions{})
+	resp, err := cli.ContainerList(context.Background(), container.ListOptions{})
 	if err != nil {
 		log.Printf("ERROR: Cannot obtain container list: %s\n", err)
 		return
@@ -139,7 +140,7 @@ func ContainerUsage(cli *client.Client, id string) (status ContainerStatus) {
 		return
 	}
 	var (
-		v                         *types.StatsJSON
+		v                         *container.StatsResponse
 		previousCPU               uint64
 		previousSystem            uint64
 		memoryPercent, cpuPercent float64
@@ -193,7 +194,7 @@ func HandleStats(cli *client.Client) {
 // Container statistic parsers.
 // See https://github.com/docker/docker-ce/blob/master/components/cli/cli/command/container/stats_helpers.go
 
-func calculateCPUPercentUnix(previousCPU, previousSystem uint64, v *types.StatsJSON) float64 {
+func calculateCPUPercentUnix(previousCPU, previousSystem uint64, v *container.StatsResponse) float64 {
 	var (
 		cpuPercent  = 0.0
 		cpuDelta    = float64(v.CPUStats.CPUUsage.TotalUsage) - float64(previousCPU)
@@ -211,7 +212,7 @@ func calculateCPUPercentUnix(previousCPU, previousSystem uint64, v *types.StatsJ
 	return cpuPercent
 }
 
-func calculateCPUPercentWindows(v *types.StatsJSON) float64 {
+func calculateCPUPercentWindows(v *container.StatsResponse) float64 {
 	possIntervals := uint64(v.Read.Sub(v.PreRead).Nanoseconds())
 	possIntervals /= 100
 	possIntervals *= uint64(v.NumProcs)
@@ -223,7 +224,7 @@ func calculateCPUPercentWindows(v *types.StatsJSON) float64 {
 	return 0.00
 }
 
-func calculateMemoryUsageUnixNoCache(mem types.MemoryStats) float64 {
+func calculateMemoryUsageUnixNoCache(mem container.MemoryStats) float64 {
 	return float64(mem.Usage - mem.Stats["cache"])
 }
 
