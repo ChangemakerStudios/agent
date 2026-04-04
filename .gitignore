@@ -22,3 +22,4 @@
 
 # Ignore agent binary
 agent
+.claude/worktrees
