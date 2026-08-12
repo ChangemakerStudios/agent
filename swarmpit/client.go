@@ -18,6 +18,12 @@ const (
 	STATS EventType = "stats"
 	EMPTY           = ""
 	TAB             = "\t"
+
+	// Swarmpit reads the shared secret from this header. It deliberately is not
+	// Authorization: swarmpit parses that as a JWT and rejects anything it
+	// cannot verify before the event endpoint's own access rule is consulted.
+	TOKEN_HEADER = "X-Swarmpit-Event-Token"
+	CONTENT_TYPE = "application/json; charset=utf-8"
 )
 
 type Event struct {
@@ -40,9 +46,25 @@ func SendEvent(eventType EventType, message interface{}) {
 		log.Printf("DEBUG: Docker event: %s", buffer)
 	}
 
-	_, err := http.Post(arg.EventEndpoint, "application/json; charset=utf-8", buffer)
+	request, err := http.NewRequest(http.MethodPost, arg.EventEndpoint, buffer)
+	if err != nil {
+		log.Printf("ERROR: Event request creation failed: %s", err)
+		return
+	}
+	request.Header.Set("Content-Type", CONTENT_TYPE)
+	if arg.EventToken != EMPTY {
+		request.Header.Set(TOKEN_HEADER, arg.EventToken)
+	}
+
+	response, err := http.DefaultClient.Do(request)
 	if err != nil {
 		log.Printf("ERROR: Event sending failed: %s", err)
+		return
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode == http.StatusUnauthorized {
+		log.Printf("ERROR: Event rejected: swarmpit returned 401. Check that SWARMPIT_EVENT_TOKEN matches the app's.")
 	}
 }
 

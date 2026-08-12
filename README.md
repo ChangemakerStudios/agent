@@ -19,8 +19,23 @@ docker run -d \
 - STATS_FREQUENCY - default to **30**
 - EVENT_ENDPOINT - default to **http://app:8080/events**
 - HEALTH_CHECK_ENDPOINT - default to **http://app:8080/version**
+- SWARMPIT_EVENT_TOKEN - default to **empty** (no token sent)
 - DEBUG_EVENT - default to **false**
 - DEBUG_STATS - default to **false**
+
+### SWARMPIT_EVENT_TOKEN
+
+Optional shared secret authorizing the agent's pushes to `EVENT_ENDPOINT`. When
+empty, no token is sent and Swarmpit accepts the push as it always has. When set,
+it is sent as the `X-Swarmpit-Event-Token` header and must match the Swarmpit
+app's own `SWARMPIT_EVENT_TOKEN`, otherwise the push is rejected with 401.
+
+It is deliberately not sent as `Authorization`: Swarmpit parses that header as a
+JWT and rejects anything it cannot verify before the event endpoint's access rule
+is reached.
+
+Requires Swarmpit 2.1.5 or newer. Older versions ignore the header, so setting it
+is harmless when pointing at one.
 
 ## Important!
 
