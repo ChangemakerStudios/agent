@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/gorilla/mux"
 	"github.com/docker/docker/client"
+	"github.com/swarmpit/agent/setup"
 	"net/http"
 	"compress/gzip"
 	"strings"
@@ -10,6 +11,8 @@ import (
 	"log"
 	"fmt"
 )
+
+var routerArg = setup.GetArgs()
 
 func NewRouter(cli *client.Client) *mux.Router {
 	router := mux.NewRouter().StrictSlash(true)
@@ -72,6 +75,13 @@ func LogMiddleware(handler http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		o := &responseObserver{ResponseWriter: w}
 		handler.ServeHTTP(o, r)
+
+		// Swarmpit polls /logs/<container> every couple of seconds for every
+		// container it is tailing, so logging each request unconditionally
+		// buries everything else. Opt in with DEBUG_HTTP.
+		if !routerArg.Debug.Http {
+			return
+		}
 
 		addr := r.RemoteAddr
 		if i := strings.LastIndex(addr, ":"); i != -1 {

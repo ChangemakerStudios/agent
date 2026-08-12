@@ -22,6 +22,7 @@ docker run -d \
 - SWARMPIT_EVENT_TOKEN - default to **empty** (no token sent)
 - DEBUG_EVENT - default to **false**
 - DEBUG_STATS - default to **false**
+- DEBUG_HTTP - default to **false** (logs every incoming request, plus containers that have gone away)
 
 ### SWARMPIT_EVENT_TOKEN
 

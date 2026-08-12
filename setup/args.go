@@ -8,6 +8,7 @@ import (
 type debug struct {
 	Event bool `json:"event"`
 	Stats bool `json:"stats"`
+	Http  bool `json:"http"`
 }
 
 type args struct {
@@ -26,7 +27,8 @@ func GetArgs() *args {
 		EventToken:          getStringValue("", "SWARMPIT_EVENT_TOKEN"),
 		Debug: debug{
 			Event: getBooleanValue(false, "DEBUG_EVENT"),
-			Stats: getBooleanValue(false, "DEBUG_STATS")},
+			Stats: getBooleanValue(false, "DEBUG_STATS"),
+			Http:  getBooleanValue(false, "DEBUG_HTTP")},
 	}
 }
 
