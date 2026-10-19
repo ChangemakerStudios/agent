@@ -19,7 +19,7 @@ docker run -d --name agent -v /var/run/docker.sock:/var/run/docker.sock swarmpit
 
 - `main.go` — Entry point: Docker client init, health check, starts event/stats goroutines, HTTP server on `:8080`
 - `router.go` — gorilla/mux router with logging middleware; gzip middleware available but disabled
-- `handler.go` — `GET /` returns agent config; `GET /logs/{container}?since=` returns container logs
+- `handler.go` — `GET /` returns agent config; `GET /logs/{container}?since=` returns container logs; `GET /volumes` returns this node's volume list (engine `/volumes` shape)
 - `setup/args.go` — Configuration from environment variables
 - `swarmpit/client.go` — HTTP client posting events to Swarmpit app + startup health check loop
 - `swarmpit/task/event.go` — Streams Docker events and forwards to Swarmpit

@@ -6,12 +6,35 @@ import (
 	"encoding/json"
 	"github.com/swarmpit/agent/setup"
 	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/volume"
 	"github.com/docker/docker/client"
 	"github.com/docker/docker/errdefs"
 	"github.com/gorilla/mux"
 	"io"
 	"log"
+	"time"
 )
+
+// A wedged volume plugin hangs the daemon's volume list; give up so one bad
+// node can't stall swarmpit's cluster-wide listing.
+const volumesTimeout = 10 * time.Second
+
+// Volumes returns this node's volumes as the engine's /volumes does. Docker
+// only lists the daemon it is asked, so swarmpit asks every node's agent.
+func Volumes(cli *client.Client) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx, cancel := context.WithTimeout(r.Context(), volumesTimeout)
+		defer cancel()
+		resp, err := cli.VolumeList(ctx, volume.ListOptions{})
+		if err != nil {
+			log.Printf("ERROR: Cannot list volumes: %s\n", err)
+			http.Error(w, err.Error(), http.StatusBadGateway)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(resp)
+	}
+}
 
 func Info(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(setup.GetArgs())

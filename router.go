@@ -20,6 +20,7 @@ func NewRouter(cli *client.Client) *mux.Router {
 	router.Use(LogMiddleware)
 	router.HandleFunc("/", Info).Methods("GET")
 	router.HandleFunc("/logs/{container}", Logs(cli)).Methods("GET")
+	router.HandleFunc("/volumes", Volumes(cli)).Methods("GET")
 	return router
 }
 
